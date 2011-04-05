@@ -1,0 +1,58 @@
+#!/usr/bin/env lua
+
+package.path = "/Users/norman/work/hops/?.lua;" .. package.path
+
+local usage = [=[
+  Usage: hops run <directory>
+
+  Description:
+    Runs the specified Hops web app using the Xavante server.
+
+  Options:
+    None yet. Eventually you'll be able to specify host, port, etc.
+    For now all apps are run at http://0.0.0.0:6789
+]=]
+
+local function run_server()
+  require "xavante"
+  require "wsapi.common"
+  require "wsapi.xavante"
+  require "xavante.filehandler"
+  require "pl.path"
+
+
+  local directory = pl.path.abspath(arg[2] or ".")
+
+
+  local config = {
+    reload   = true,
+    isolated = true,
+    filename = pl.path.join(directory, "app.lua")
+  }
+  local docroot = pl.path.join(directory, "public")
+
+  xavante.HTTP {
+    server = {host = "*", port = 6789},
+
+    defaultHost = {
+      rules = {
+        {
+          match = {"%..*$"},
+          with = xavante.filehandler(docroot)
+        },
+        {
+          match = { "^/(.-)$" },
+          with = wsapi.xavante.makeGenericHandler(directory, config),
+        }
+      }
+    }
+  }
+  xavante.start()
+end
+
+if arg[1] == "run" then
+  run_server()
+else
+  print(usage)
+  os.exit(1)
+end

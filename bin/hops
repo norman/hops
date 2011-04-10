@@ -1,6 +1,9 @@
 #!/usr/bin/env lua
+local path = require "pl.path"
 
-package.path = "/Users/norman/work/hops/?.lua;" .. package.path
+local file = path.abspath(debug.getinfo(1).source:match("@(.*)$"))
+local libdir  = pl.path.dirname(pl.path.dirname(file))
+package.path = libdir .. "/?.lua;" .. package.path
 
 local usage = [=[
   Usage: hops run <directory>
@@ -18,18 +21,17 @@ local function run_server()
   require "wsapi.common"
   require "wsapi.xavante"
   require "xavante.filehandler"
-  require "pl.path"
 
 
   local directory = pl.path.abspath(arg[2] or ".")
 
 
   local config = {
-    reload   = true,
+    reload   = false,
     isolated = true,
-    filename = pl.path.join(directory, "app.lua")
+    filename = path.join(directory, "app.lua")
   }
-  local docroot = pl.path.join(directory, "public")
+  local docroot = path.join(directory, "public")
 
   xavante.HTTP {
     server = {host = "*", port = 6789},

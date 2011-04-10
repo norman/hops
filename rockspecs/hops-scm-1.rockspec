@@ -14,7 +14,9 @@ description = {
 dependencies = {
    "lua >= 5.1",
    "wsapi",
-   "wsapi-xavante"
+   "wsapi-xavante",
+   "penlight",
+   "telescope"
 }
 
 build = {

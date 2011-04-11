@@ -1,9 +1,9 @@
-require "wsapi.response"
 require "wsapi.util"
 
 local lp            = require "hops.lp"
 local router        = require "hops.router"
 local hops_request  = require "hops.request"
+local hops_response = require "hops.response"
 local template_path = debug.getinfo(1).source:match("@(.*)$"):gsub("hops.lua", "hops/templates")
 
 local default_config = {
@@ -51,14 +51,12 @@ local function new(self, config)
   self.run = function(wsapi_env)
     self.request  = hops_request.new(wsapi_env)
     self.headers  = {["Content-Type"]= "text/html; charset=utf-8"}
-    self.response = wsapi.response.new(200, self.headers)
+    self.response = hops_response.new(200, self.headers)
     self.route    = self.routes:match(self.request)
 
     if not self.route then
       self.template = self.templates["404"].path
-      self.response:write(self.templates["404"]:render())
-      self.response.status = 404
-      return self.response:finish()
+      return self.response:finish(self.templates["404"]:render(), 404)
     end
 
     self.params   = self.request.params
@@ -75,22 +73,17 @@ local function new(self, config)
 
     local ok, result = xpcall(respond, debug.traceback)
     if ok then
-      -- If the action returns a function, then return a coroutine that WSAPI
-      -- can use to provide streaming output.
       if type(result) == "function" then
-        return self.response.status, self.response.headers, coroutine.wrap(result)
-      -- If the return value is nil, then render with the default renderer.
+        return self.response:wrap(result)
       elseif result == nil then
         result = self.config.default_renderer(self.route.name)
       end
-      self.response:write(result)
-      return self.response:finish()
+      return self.response:finish(result)
     else
       self.template = self.templates["500"].path
-      self.error = result
-      self.response:write(self.templates["500"]:render({error = result}))
-      self.response.status = 500
-      return self.response:finish()
+      self.error    = result
+      local content = self.templates["500"]:render({error = result})
+      return self.response:finish(content, 500)
     end
   end
 

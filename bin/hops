@@ -1,8 +1,8 @@
 #!/usr/bin/env lua
 local path = require "pl.path"
 
-local file = path.abspath(debug.getinfo(1).source:match("@(.*)$"))
-local libdir  = pl.path.dirname(pl.path.dirname(file))
+local file   = path.abspath(debug.getinfo(1).source:match("@(.*)$"))
+local libdir = path.dirname(path.dirname(file))
 package.path = libdir .. "/?.lua;" .. package.path
 
 local usage = [=[
@@ -27,7 +27,7 @@ local function run_server()
 
 
   local config = {
-    reload   = false,
+    reload   = true,
     isolated = true,
     filename = path.join(directory, "app.lua")
   }

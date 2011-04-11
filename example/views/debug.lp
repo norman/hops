@@ -1,4 +1,4 @@
-<% for name, t in pairs(locals) do -%>
+<% for name, t in pairs(app) do -%>
   <h2><%= name %></h2>
   <ul>
     <% if type(t) == "table" then -%>

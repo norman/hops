@@ -5,7 +5,7 @@ local app       = nil
 
 local function lp(template, locals)
   local template     = path.join(app.config.views, template .. ".lp")
-  local layout       = app.page.layout or app.config.layout
+  local layout       = app.response.layout or app.config.layout
   app.locals.content = lp_module.render_file(template, app.locals)
   if layout then
     layout = path.join(app.config.views, layout .. ".lp")

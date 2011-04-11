@@ -6,7 +6,7 @@ local function log(app, start, finish)
   print(
     app.request.method,
     app.request.path_info,
-    "route: " .. app.route.name,
+    "route: " .. app.response.route.name,
     ("%.4f"):format(finish - start)
   )
 end

@@ -4,7 +4,7 @@ local app  = nil
 
 local function haml(template, locals)
   local template     = path.join(app.config.views, template .. ".haml")
-  local layout       = app.page.layout or app.config.layout
+  local layout       = app.response.layout or app.config.layout
   app.locals.content = app.haml_engine:render_file(template, app.locals)
   if layout then
     layout = path.join(app.config.views, layout .. ".haml")

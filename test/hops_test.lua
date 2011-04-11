@@ -12,7 +12,7 @@ context("Hops", function()
       app = hops({}, {})
     end)
 
-    for _, name in ipairs({"config", "routes", "templates", "run", "use"}) do
+    for _, name in ipairs({"config", "routes", "run", "use"}) do
       test("should assign a value to app." .. name, function()
         assert_not_nil(app[name])
       end)
@@ -51,19 +51,19 @@ context("Hops", function()
 
     test("should use 404 template for 404 errors", function()
       local response = mock:get("/hello")
-      assert_equal("./hops/templates/404.lp", app.template)
+      assert_equal("./hops/templates/404.lp", app.response.template)
     end)
 
     test("should use 500 template for 500 errors", function()
       app.routes.hello = app.get("/hello", function() error "hello!" end)
       local response = mock:get("/hello")
-      assert_equal("./hops/templates/500.lp", app.template)
+      assert_equal("./hops/templates/500.lp", app.response.template)
     end)
 
     test("should assign error to a variable for use by plugins", function()
       app.routes.hello = app.get("/hello", function() error "hello!" end)
       local response = mock:get("/hello")
-      assert_not_nil(app.error)
+      assert_not_nil(app.response.error)
     end)
   end)
 

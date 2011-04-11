@@ -14,7 +14,6 @@ function class.new(env)
   end
 
   instance.params        = {}
-  instance.env           = env
   instance.wsapi_request = request
 
   -- extract params from GET and POST

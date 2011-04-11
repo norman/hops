@@ -18,7 +18,10 @@ function methods:wrap(func)
 end
 
 function class.new(status, headers)
+  local status  = status or 200
+  local headers = headers or {["Content-Type"]= "text/html; charset=utf-8"}
   local instance = {
+    headers        = headers,
     wsapi_response = wsapi.response.new(status, headers)
   }
   return setmetatable(instance, {__index = methods})

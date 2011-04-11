@@ -1,9 +1,9 @@
-require "wsapi.request"
 require "wsapi.response"
 require "wsapi.util"
 
 local lp            = require "hops.lp"
 local router        = require "hops.router"
+local hops_request  = require "hops.request"
 local template_path = debug.getinfo(1).source:match("@(.*)$"):gsub("hops.lua", "hops/templates")
 
 local default_config = {
@@ -14,16 +14,6 @@ local default_config = {
     error("No default renderer has been configured")
   end
 }
-
-local function emulate_http_methods(request)
-  if request.POST._method then
-    local method = request.POST._method:upper()
-    request.env.REQUEST_METHOD = method
-    request.method = method
-    request.POST._method = nil
-  end
-  return request
-end
 
 local function load_templates(...)
   local templates = {}
@@ -37,7 +27,6 @@ local function load_templates(...)
 end
 
 local function use_plugin(app, plugin_name, options)
-
   local plugin_path = plugin_name
   if not plugin_name:match("%.") then
     plugin_path = ("hops.plugin.%s.%s"):format(plugin_name, plugin_name)
@@ -47,12 +36,10 @@ local function use_plugin(app, plugin_name, options)
 end
 
 local function new(self, config)
-  self.config           = setmetatable(config or {}, {__index = default_config})
-  self.routes           = router.new(self)
-  self.templates        = load_templates("404", "500")
-  self.use              = function(...)
-    use_plugin(self, ...)
-  end
+  self.config    = setmetatable(config or {}, {__index = default_config})
+  self.routes    = router.new(self)
+  self.templates = load_templates("404", "500")
+  self.use       = function(...) use_plugin(self, ...) end
 
   -- DSL methods for setting up routes
   for method, _ in pairs(router.http_methods) do
@@ -62,42 +49,28 @@ local function new(self, config)
   end
 
   self.run = function(wsapi_env)
-    local request  = emulate_http_methods(wsapi.request.new(wsapi_env))
-    local headers  = {["Content-Type"]= "text/html; charset=utf-8"}
-    local response = wsapi.response.new(200, headers)
-    local route    = self.routes:match(wsapi_env)
+    self.request  = hops_request.new(wsapi_env)
+    self.headers  = {["Content-Type"]= "text/html; charset=utf-8"}
+    self.response = wsapi.response.new(200, self.headers)
+    self.route    = self.routes:match(self.request)
 
-    if not route then
+    if not self.route then
       self.template = self.templates["404"].path
-      response:write(self.templates["404"]:render())
-      response.status = 404
-      return response:finish()
+      self.response:write(self.templates["404"]:render())
+      self.response.status = 404
+      return self.response:finish()
     end
 
-    -- extract input params from routes
-    local input = {wsapi_env.PATH_INFO:match(route.pattern)}
-
-    -- extract params from GET and POST
-    local params = {}
-    for _, method in ipairs({"GET", "POST"}) do
-      if request[method] then
-        for k, v in pairs(request[method]) do
-          params[k] = v
-        end
-      end
-    end
+    self.params   = self.request.params
+    self.page     = {}
+    self.template = nil
+    self.error    = nil
+    self.locals   = setmetatable({}, {__index = self})
 
     local function respond()
-      self.route    = route
-      self.response = response
-      self.request  = request
-      self.params   = params
-      self.headers  = headers
-      self.page     = {}
-      self.template = nil
-      self.error    = nil
-      self.locals   = setmetatable({}, {__index = self})
-      return route.func(unpack(input))
+      -- extract input params from routes
+      local input = {self.request.env.PATH_INFO:match(self.route.pattern)}
+      return self.route.func(unpack(input))
     end
 
     local ok, result = xpcall(respond, debug.traceback)
@@ -105,19 +78,19 @@ local function new(self, config)
       -- If the action returns a function, then return a coroutine that WSAPI
       -- can use to provide streaming output.
       if type(result) == "function" then
-        return response.status, response.headers, coroutine.wrap(result)
+        return self.response.status, self.response.headers, coroutine.wrap(result)
       -- If the return value is nil, then render with the default renderer.
       elseif result == nil then
-        result = self.config.default_renderer(route.name)
+        result = self.config.default_renderer(self.route.name)
       end
-      response:write(result)
-      return response:finish()
+      self.response:write(result)
+      return self.response:finish()
     else
       self.template = self.templates["500"].path
       self.error = result
-      response:write(self.templates["500"]:render({error = result}))
-      response.status = 500
-      return response:finish()
+      self.response:write(self.templates["500"]:render({error = result}))
+      self.response.status = 500
+      return self.response:finish()
     end
   end
 

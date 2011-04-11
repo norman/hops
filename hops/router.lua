@@ -33,9 +33,9 @@ end
 local instance_methods = {}
 local route_methods = {}
 
-function instance_methods:match(wsapi_env)
-  for _, r in ipairs(self[wsapi_env.REQUEST_METHOD]) do
-    if r.match_func(wsapi_env) then
+function instance_methods:match(request)
+  for _, r in ipairs(self[request.method]) do
+    if r.match_func(request) then
       return r
     end
   end
@@ -51,9 +51,9 @@ local function add_route(self, key, arg)
   method = format_method(method)
   if not self[method] then self[method] = {} end
 
-  local match_func = function(wsapi_env)
-    local rm = wsapi_env.REQUEST_METHOD
-    local pi = wsapi_env.PATH_INFO
+  local match_func = function(request)
+    local rm = request.method
+    local pi = request.env.PATH_INFO
     return rm == method and pi:match(pattern)
   end
 

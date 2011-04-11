@@ -13,7 +13,7 @@ context("Hops", function()
     end)
 
     for _, name in ipairs({"config", "routes", "templates", "run", "use"}) do
-      test("should assign a value to " .. name, function()
+      test("should assign a value to app." .. name, function()
         assert_not_nil(app[name])
       end)
     end
@@ -26,6 +26,9 @@ context("Hops", function()
       app = hops({}, {})
       mock = wsapi.mock.make_handler(app)
     end)
+
+    test("Should initialize a state table with framework-related request info")
+    test("Should not preserve state between requests")
 
     test("Should emulate PUT", function()
       app.routes.hello = app.put("/hello", function() return "hello!" end)

@@ -23,7 +23,7 @@ local function run_server()
   require "xavante.filehandler"
 
 
-  local directory = pl.path.abspath(arg[2] or ".")
+  local directory = path.abspath(arg[2] or ".")
 
 
   local config = {

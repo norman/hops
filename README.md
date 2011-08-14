@@ -52,6 +52,8 @@ You can also install Hops via Luarocks, but at the moment you have to do it like
     cd hops
     sudo luarocks make rockspecs/hops-scm-1.rockspec
 
+Dependencies: penlight and wsapi-xavante.
+
 Hops is free software, released under the MIT License.
 
 Copyright (c) 2011 Norman Clarke

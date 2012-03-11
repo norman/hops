@@ -3,10 +3,11 @@ local mod = {}
 local function log(app, start, finish)
   local start  = start  or 0
   local finish = finish or 0
+  local route  = app.response.route
   print(
     app.request.method,
     app.request.path_info,
-    "route: " .. app.response.route.name,
+    "route: " .. (route and route.name or "NONE"),
     ("%.4f"):format(finish - start)
   )
 end

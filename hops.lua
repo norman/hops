@@ -70,7 +70,8 @@ local function new(self, config)
       if type(result) == "function" then
         return self.response:wrap(result)
       elseif result == nil then
-        result = self.config.default_renderer(self.response.route.name)
+        result    = self.config.default_renderer(self.response.route.name)
+        self.body = result
       end
       return self.response:finish(result)
     else

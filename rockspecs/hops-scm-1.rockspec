@@ -16,7 +16,8 @@ dependencies = {
    "wsapi",
    "wsapi-xavante",
    "penlight",
-   "telescope"
+   "telescope",
+   "md5"
 }
 
 build = {
@@ -28,6 +29,7 @@ build = {
     ["hops.request"]              = "hops/request.lua",
     ["hops.lp"]                   = "hops/lp.lua",
     ["hops.plugin.haml.haml"]     = "hops/plugin/haml/haml.lua",
+    ["hops.plugin.etag.etag"]     = "hops/plugin/etag/etag.lua",
     ["hops.plugin.lp.lp"]         = "hops/plugin/lp/lp.lua",
     ["hops.plugin.logger.logger"] = "hops/plugin/logger/logger.lua"
   },
